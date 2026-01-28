@@ -1,0 +1,44 @@
+plugins {
+    id 'java'
+    id 'com.github.johnrengelman.shadow' version '7.1.2'
+}
+
+group = 'com.antibot'
+version = '2.0.0'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        name = 'papermc'
+        url = 'https://repo.papermc.io/repository/maven-public/'
+    }
+}
+
+dependencies {
+    compileOnly 'com.velocitypowered:velocity-api:3.3.0-SNAPSHOT'
+    annotationProcessor 'com.velocitypowered:velocity-api:3.3.0-SNAPSHOT'
+    implementation 'org.yaml:snakeyaml:2.2'
+}
+
+shadowJar {
+    archiveClassifier.set('')
+    archiveBaseName.set('AntiBot-Pro')
+    relocate 'org.yaml.snakeyaml', 'com.antibot.libs.snakeyaml'
+}
+
+tasks.build.dependsOn shadowJar
+
+jar {
+    manifest {
+        attributes(
+            'Implementation-Title': 'AntiBot Pro',
+            'Implementation-Version': version
+        )
+    }
+}
