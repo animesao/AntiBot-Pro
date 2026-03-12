@@ -440,7 +440,7 @@ public class AntiBotPlugin {
 
             if (result.isDetected()) {
                 logger.warn("╔═══════════════════════════════════════════════════════════╗");
-                logger.warn("║ LeakTime » Обнаружен читерский клиент!                    ║");
+                logger.warn("║ Обнаружен читерский клиент!                    ║");
                 logger.warn("╠═══════════════════════════════════════════════════════════╣");
                 logger.warn("║ <{}_{}> !https://discord.gg/server", 
                     String.format("%04d", Math.abs(player.getUniqueId().hashCode() % 10000)),
