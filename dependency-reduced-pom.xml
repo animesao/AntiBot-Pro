@@ -4,8 +4,8 @@
   <groupId>com.antibot</groupId>
   <artifactId>antibot-pro</artifactId>
   <name>AntiBot Pro</name>
-  <version>2.0.0</version>
-  <description>Продвинутая защита от ботов, читов и DDoS атак</description>
+  <version>2.1.0</version>
+  <description>Продвинутая защита от ботов, читов и DDoS атак с Discord интеграцией</description>
   <build>
     <resources>
       <resource>
@@ -44,6 +44,22 @@
                   <pattern>org.yaml.snakeyaml</pattern>
                   <shadedPattern>com.antibot.libs.snakeyaml</shadedPattern>
                 </relocation>
+                <relocation>
+                  <pattern>net.dv8tion.jda</pattern>
+                  <shadedPattern>com.antibot.libs.jda</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>com.neovisionaries.i18n</pattern>
+                  <shadedPattern>com.antibot.libs.i18n</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>okio</pattern>
+                  <shadedPattern>com.antibot.libs.okio</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>okhttp3</pattern>
+                  <shadedPattern>com.antibot.libs.okhttp3</shadedPattern>
+                </relocation>
               </relocations>
               <finalName>AntiBot-Pro-${project.version}</finalName>
             </configuration>
@@ -56,6 +72,11 @@
     <repository>
       <id>papermc</id>
       <url>https://repo.papermc.io/repository/maven-public/</url>
+    </repository>
+    <repository>
+      <id>central</id>
+      <name>Central Repository</name>
+      <url>https://repo.maven.apache.org/maven2</url>
     </repository>
   </repositories>
   <dependencies>

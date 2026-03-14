@@ -1,26 +1,30 @@
-# 🛡️ AntiBot Pro v2.0.0
+# 🛡️ AntiBot Pro v2.1.0
 
 [![Java](https://img.shields.io/badge/Java-17+-orange.svg?style=for-the-badge&logo=openjdk)](https://adoptium.net/)
 [![Velocity](https://img.shields.io/badge/Velocity-3.3.0+-green.svg?style=for-the-badge&logo=minecraft)](https://papermc.io/velocity)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
 [![Build](https://img.shields.io/badge/Build-Maven-red.svg?style=for-the-badge&logo=apache-maven)](https://maven.apache.org/)
+[![Discord](https://img.shields.io/badge/Discord-Бот-5865F2.svg?style=for-the-badge&logo=discord)](https://discord.com/)
 
-**Продвинутый плагин защиты для Velocity Proxy серверов Minecraft**  
+**Продвинутый плагин защиты для Velocity Proxy серверов Minecraft**
 Обеспечивает комплексную защиту от **бот-атак**, **читерских клиентов**, **VPN/Proxy** и **подозрительного поведения игроков**.
+
+🆕 **Версия 2.1.0:** Полноценный Discord бот + Система привязки аккаунтов Minecraft ↔ Discord
 
 ---
 
 ## 📋 Содержание
 
 - [Возможности](#-возможности)
+- [Новые функции v2.1.0](#-новые-функции-v210)
 - [Структура проекта](#-структура-проекта)
 - [Установка](#-установка)
-- [Настройка](#-настройка)
-- [Discord интеграция](#-discord-интеграция)
-- [Команды](#-команды)
+- [Настройка Discord бота](#-настройка-discord-бота)
+- [Система привязки аккаунтов](#-система-привязки-аккаунтов)
+- [Команды Discord бота](#-команды-discord-бота)
+- [Команды в игре](#-команды-в-игре)
 - [Сборка](#-сборка)
 - [Требования](#-требования)
-- [Лицензия](#-лицензия)
 
 ---
 
@@ -56,13 +60,14 @@
 - Интеграция с **ip-api.com**
 - Отображение страны игрока в Discord
 
-### 🤖 Discord интеграция
-- Webhook-уведомления о всех событиях
+### 💬 Discord интеграция
+- **Webhook-уведомления** о всех событиях
+- **Discord Бот** с slash-командами
+- **Привязка аккаунтов** Minecraft ↔ Discord
 - Логирование входов / выходов игроков с IP
 - Настраиваемые **цвета embed-сообщений**
-- Выбор событий для логирования
 - Маскирование IP (опционально)
-- Настройка имени и аватара бота
+- DM верификация игроков
 
 ### 🔒 Дополнительные функции
 - Лимит подключений с одного IP
@@ -70,6 +75,31 @@
 - Режим усиленной защиты (Strict Mode)
 - CAPTCHA верификация
 - Белые списки IP и игроков
+
+---
+
+## 🆕 Новые функции v2.1.0
+
+### 🤖 Discord Бот
+Полноценный Discord бот для управления сервером:
+- Slash команды для управления и мониторинга
+- Проверка статуса сервера из Discord
+- Просмотр игроков онлайн
+- Управление whitelist/blacklist
+- Статистика AntiBot в реальном времени
+
+### 🔗 Система привязки аккаунтов
+Привязка Minecraft аккаунтов к Discord:
+- Команда `/link <ник>` для привязки
+- DM верификация с кодом подтверждения
+- Защита от множественных привязок с одного IP
+- Автоматический whitelist для привязанных аккаунтов
+- Уведомления в ЛС при входе на сервер
+
+### 📊 Расширенная статистика
+- Количество привязанных аккаунтов
+- История верификаций
+- Статистика по Discord серверам
 
 ---
 
@@ -85,7 +115,11 @@ src/main/java/com/antibot/velocity/
 ├── verification/
 │   └── CaptchaVerification.java   # CAPTCHA верификация
 ├── webhook/
-│   └── DiscordWebhook.java        # Discord интеграция
+│   └── DiscordWebhook.java        # Discord Webhook уведомления
+├── discord/
+│   └── DiscordBot.java            # Discord Bot интеграция
+├── account/
+│   └── AccountLinkManager.java    # Привязка аккаунтов
 ├── AntiBotCommand.java            # Команды администратора
 ├── AntiBotPlugin.java             # Главный класс плагина
 ├── ConfigManager.java             # Управление конфигурацией
@@ -97,7 +131,7 @@ src/main/java/com/antibot/velocity/
 
 ## 📥 Установка
 
-1. Скачайте готовый файл плагина: `AntiBot-Pro-2.0.0.jar`
+1. Скачайте готовый файл плагина: `AntiBot-Pro-2.1.0.jar`
 2. Скопируйте его в папку `plugins/` вашего Velocity сервера
 3. Перезапустите сервер
 4. Отредактируйте конфигурацию в `plugins/antibot/config.yml`
@@ -108,110 +142,121 @@ src/main/java/com/antibot/velocity/
 
 ---
 
-## ⚙️ Настройка
+## ⚙️ Настройка Discord Бота
 
-### Основные параметры защиты
+### 1. Создание Discord приложения
 
-```yaml
-# Лимиты подключений
-limits:
-  max-connections-per-ip: 5           # Макс. подключений с одного IP
-  max-connections-per-second: 30      # Глобальный лимит подключений в секунду
-  max-accounts-per-ip: 3              # Макс. аккаунтов с одного IP
-  time-window-seconds: 60             # Временное окно для подсчёта
-  block-duration-minutes: 10          # Длительность блокировки
+1. Перейдите на [Discord Developer Portal](https://discord.com/developers/applications)
+2. Нажмите **New Application** и введите имя
+3. Перейдите в раздел **Bot** в левом меню
+4. Нажмите **Add Bot** → **Yes, do it!**
 
-# Проверка клиентов (читы)
-client-check:
-  enabled: true
-  kick-cheat-clients: true
-  kick-no-brand: false
-  brand-check-timeout: 10
+### 2. Получение токена
 
-# Проверка VPN/Proxy
-vpn-check:
-  enabled: true
-  block-vpn: true
-  api-key: ""                         # API ключ для proxycheck.io
+1. В разделе **Bot** найдите **Token**
+2. Нажмите **Copy** или **Reset Token**
+3. Вставьте токен в `config.yml`:
+   ```yaml
+   discord-bot:
+     enabled: true
+     bot-token: "YOUR_BOT_TOKEN_HERE"
+   ```
 
-# GeoIP блокировка
-geo-block:
-  enabled: false
-  whitelist-mode: false
-  allowed-countries: [RU, UA, BY, KZ]
-  blocked-countries: []
-```
+### 3. Настройка прав бота
 
-### Белые списки
+1. Перейдите в **OAuth2** → **URL Generator**
+2. Выберите scopes: `bot`, `applications.commands`
+3. Выберите permissions:
+   - **Send Messages**
+   - **Embed Links**
+   - **Use Slash Commands**
+   - **Read Message History**
+   - **Manage Roles** (опционально)
+4. Скопируйте сгенерированную ссылку
+5. Откройте ссылку в браузере и пригласите бота на сервер
 
-```yaml
-whitelist:
-  ips: []                             # IP адреса без проверок
-  players: []                         # Никнеймы без проверок
-```
+### 4. Получение ID сервера и ролей
 
-### Сообщения
-
-```yaml
-messages:
-  blocked: "Вы заблокированы! Попробуйте позже."
-  rate-limit: "Слишком много подключений! Подождите немного."
-  max-accounts: "Превышен лимит аккаунтов с вашего IP!"
-  attack-mode: "Сервер под защитой. Попробуйте позже."
-  invalid-name: "Недопустимый никнейм!"
-  cheat-client: "Обнаружен запрещенный клиент!"
-  vpn-blocked: "VPN/Proxy запрещены на этом сервере!"
-  geo-blocked: "Подключение из вашего региона заблокировано!"
-  no-brand: "Ваш клиент не прошел проверку!"
-```
+1. В Discord включите **Режим разработчика**:
+   - Настройки → Дополнительно → Режим разработчика
+2. ПКМ по серверу → **Копировать ID**
+3. ПКМ по роли → **Копировать ID**
+4. Вставьте ID в `config.yml`:
+   ```yaml
+   discord-bot:
+     allowed-guilds:
+       - "123456789012345678"  # ID вашего сервера
+     admin-roles:
+       - "987654321098765432"  # ID роли администратора
+   ```
 
 ---
 
-## 💬 Discord интеграция
+## 🔗 Система привязки аккаунтов
 
-### Основные настройки
+### Настройка
 
 ```yaml
-discord:
-  webhook-url: "https://discord.com/api/webhooks/..."
-  enabled: true
-  bot-name: "AntiBot Pro"
-  avatar-url: "https://example.com/avatar.png"
-  mask-ip: false                      # Маскировать IP (192.168.***.***)
+account-linking:
+  # Автоматически добавлять привязанные аккаунты в whitelist
+  auto-whitelist: false
+  
+  # Отправлять уведомления в ЛС Discord при входе
+  dm-notification: true
+  
+  # Максимум аккаунтов на один Discord
+  max-per-discord: 3
+  
+  # Требовать верификацию через DM
+  require-verification: false
+  
+  # Доверенные роли (упрощенная проверка)
+  trusted-roles: []
 ```
 
-### 📌 События для логирования
+### Как использовать
 
-| Событие | Описание |
+1. Игрок заходит на сервер
+2. В Discord использует команду `/link <никнейм>`
+3. Бот проверяет наличие игрока онлайн
+4. Аккаунты привязываются
+
+### Верификация через DM
+
+Если включена `require-verification: true`:
+
+1. Игрок использует `/verify` в Discord
+2. Бот отправляет код в ЛС
+3. Игрок вводит код в ЛС бота
+4. После верификации использует `/link <ник>`
+
+---
+
+## 💬 Команды Discord бота
+
+### Основные команды
+
+| Команда | Описание |
 |---------|----------|
-| `player-join` | Вход игрока (ник, IP, страна, клиент) |
-| `player-leave` | Выход игрока (время сессии) |
-| `cheat-detection` | Обнаружение читерского клиента |
-| `vpn-detection` | Обнаружение VPN/Proxy |
-| `bot-detection` | Обнаружение бота |
-| `ip-block` | Блокировка IP адреса |
-| `player-kick` | Кик игрока |
-| `attack-mode` | Включение/выключение режима атаки |
-| `suspicious-name` | Подозрительный никнейм |
+| `/link <ник>` | Привязать Minecraft аккаунт к Discord |
+| `/unlink` | Отвязать Minecraft аккаунт |
+| `/verify` | Получить код верификации в ЛС |
+| `/status` | Показать статус сервера |
+| `/online` | Показать игроков онлайн |
+| `/help` | Показать список команд |
 
-### 🎨 Цвета embed-сообщений
+### Админ команды
 
-```yaml
-colors:
-  join:        "#00FF00"     # Зелёный — вход игрока
-  leave:       "#808080"     # Серый — выход игрока
-  cheat:       "#FF0000"     # Красный — читерский клиент
-  vpn:         "#FFA500"     # Оранжевый — VPN/Proxy
-  bot:         "#FF4500"     # Оранжево-красный — бот
-  block:       "#8B0000"     # Тёмно-красный — блокировка IP
-  kick:        "#DC143C"     # Малиновый — кик игрока
-  attack:      "#FF0000"     # Красный — режим атаки
-  suspicious:  "#FFFF00"     # Жёлтый — подозрительный ник
-```
+| Команда | Описание | Права |
+|---------|----------|-------|
+| `/stats` | Статистика AntiBot | Admin Role |
+| `/reload` | Перезагрузить конфигурацию | Admin Role |
+| `/check <игрок>` | Проверить игрока | Admin Role |
+| `/whitelist <action> <type> <value>` | Управление whitelist | Admin Role |
 
 ---
 
-## 🎮 Команды
+## 🎮 Команды в игре
 
 | Команда | Описание |
 |---------|----------|
@@ -220,10 +265,12 @@ colors:
 | `/antibot stats` | Статистика обнаружений |
 | `/antibot blocked` | Список заблокированных IP |
 | `/antibot unblock <ip>` | Разблокировать IP |
-| `/antibot whitelist add <ip/player> <value>` | Добавить в вайтлист |
-| `/antibot whitelist remove <ip/player> <value>` | Удалить из вайтлиста |
+| `/antibot whitelist add/remove <ip/player> <value>` | Добавить/удалить из вайтлиста |
 | `/antibot behavior [player]` | Анализ поведения игрока |
 | `/antibot check <player/ip>` | Проверка игрока или IP |
+| `/antibot linked <player/discord> <value>` | Проверить привязку аккаунтов |
+| `/antibot discord status` | Статус Discord бота |
+| `/antibot accounts` | Статистика привязанных аккаунтов |
 
 ### Права доступа
 
@@ -254,7 +301,7 @@ mvn install
 
 Готовый файл плагина будет находиться в папке `target/`:
 ```
-target/AntiBot-Pro-2.0.0.jar
+target/AntiBot-Pro-2.1.0.jar
 ```
 
 ---
@@ -266,18 +313,7 @@ target/AntiBot-Pro-2.0.0.jar
 | **Velocity** | 3.3.0+ |
 | **Java** | 17+ |
 | **Maven** | 3.6+ (для сборки) |
-
----
-
-## 📄 Лицензия
-
-Этот проект распространяется под лицензией **MIT License**.  
-Подробности см. в файле [LICENSE](LICENSE).
-
-```
-MIT License
-Copyright (c) 2026 animesao
-```
+| **Discord Bot** | Требуется для Discord интеграции |
 
 ---
 
@@ -286,10 +322,11 @@ Copyright (c) 2026 animesao
 - **Velocity Proxy**: [https://papermc.io/velocity](https://papermc.io/velocity)
 - **ProxyCheck API**: [https://proxycheck.io/](https://proxycheck.io/)
 - **ip-api.com**: [https://ip-api.com/](https://ip-api.com/)
+- **Discord Developer Portal**: [https://discord.com/developers/applications](https://discord.com/developers/applications)
 
 ---
 
 <p align="center">
-  <b>🔥 AntiBot Pro — максимальная защита вашего Velocity-сервера</b><br>
-  <i>От атак, ботов, читеров и злоупотреблений</i>
+  <b>🔥 AntiBot Pro v2.1.0 — максимальная защита вашего Velocity-сервера</b><br>
+  <i>От атак, ботов, читеров и злоупотреблений + Discord интеграция</i>
 </p>
