@@ -1,1 +1,0 @@
-{"id":"antibot","name":"AntiBot Pro","version":"2.1.0","description":"Продвинутая защита от ботов, читов и DDoS атак с Discord интеграцией","authors":["Developer"],"dependencies":[],"main":"com.antibot.velocity.AntiBotPlugin"}
