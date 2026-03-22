@@ -26,6 +26,8 @@ public class AccountLinkManager {
     private final Map<String, String> ipToMinecraft = new ConcurrentHashMap<>();
     private final Map<String, Long> discordVerified = new ConcurrentHashMap<>();
     private final Map<String, Long> discordLinkTime = new ConcurrentHashMap<>();
+    private final Map<String, Long> pendingTwoFactorAuth = new ConcurrentHashMap<>();
+    private final Map<String, String> pendingTwoFactorUsers = new ConcurrentHashMap<>();
 
     private boolean autoWhitelistEnabled;
     private boolean dmNotificationEnabled;
@@ -156,6 +158,34 @@ public class AccountLinkManager {
 
     public Long getLinkTime(String discordId) {
         return discordLinkTime.get(discordId);
+    }
+
+    public void requestTwoFactorAuth(String playerName, String discordId) {
+        pendingTwoFactorAuth.put(discordId, System.currentTimeMillis());
+        pendingTwoFactorUsers.put(playerName.toLowerCase(), discordId);
+    }
+
+    public boolean isTwoFactorPending(String playerName) {
+        String discordId = pendingTwoFactorUsers.get(playerName.toLowerCase());
+        if (discordId == null) return false;
+        
+        Long requestTime = pendingTwoFactorAuth.get(discordId);
+        if (requestTime == null) return false;
+        
+        if (System.currentTimeMillis() - requestTime > 300000) {
+            pendingTwoFactorAuth.remove(discordId);
+            pendingTwoFactorUsers.remove(playerName.toLowerCase());
+            return false;
+        }
+        
+        return true;
+    }
+
+    public void completeTwoFactorAuth(String playerName) {
+        String discordId = pendingTwoFactorUsers.remove(playerName.toLowerCase());
+        if (discordId != null) {
+            pendingTwoFactorAuth.remove(discordId);
+        }
     }
 
     public boolean hasTrustedRole(String discordId) {

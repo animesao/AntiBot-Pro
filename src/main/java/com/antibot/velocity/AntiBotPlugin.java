@@ -2,6 +2,7 @@ package com.antibot.velocity;
 
 import com.antibot.velocity.account.AccountLinkManager;
 import com.antibot.velocity.detection.*;
+import com.antibot.velocity.github.GitHubReleaseChecker;
 import com.antibot.velocity.discord.DiscordBot;
 import com.antibot.velocity.verification.CaptchaVerification;
 import com.antibot.velocity.webhook.DiscordWebhook;
@@ -64,6 +65,7 @@ public class AntiBotPlugin {
     private final Set<String> whitelistedIps = ConcurrentHashMap.newKeySet();
     private final Set<String> whitelistedPlayers =
         ConcurrentHashMap.newKeySet();
+    private final Set<String> verifiedPlayers = ConcurrentHashMap.newKeySet();
 
     private final AtomicLong globalConnectionsPerSecond = new AtomicLong(0);
     private volatile long lastSecond = System.currentTimeMillis() / 1000;
@@ -79,6 +81,7 @@ public class AntiBotPlugin {
     private DiscordWebhook discordWebhook;
     private DiscordBot discordBot;
     private AccountLinkManager accountLinkManager;
+    private GitHubReleaseChecker githubChecker;
 
     private final AtomicLong totalBlockedConnections = new AtomicLong(0);
     private final AtomicLong totalCheatDetections = new AtomicLong(0);
@@ -123,6 +126,7 @@ public class AntiBotPlugin {
 
         setupDiscordWebhook();
         setupDiscordBot();
+        setupGitHubChecker();
         loadGeoIPSettings();
         loadWhitelists();
 
@@ -263,6 +267,15 @@ public class AntiBotPlugin {
         new Thread(discordBot::initialize, "DiscordBot-Init").start();
 
         logger.info("Discord Bot инициализирован");
+    }
+
+    private void setupGitHubChecker() {
+        this.githubChecker = new GitHubReleaseChecker("2.2.0");
+        githubChecker.checkForUpdatesAsync(null);
+    }
+
+    public GitHubReleaseChecker getGitHubChecker() {
+        return githubChecker;
     }
 
     @Subscribe
@@ -458,6 +471,33 @@ public class AntiBotPlugin {
                         username,
                         usernameResult.getRiskScore()
                     );
+                    return;
+                }
+            }
+        }
+
+        // 2FA Верификация для привязанных аккаунтов
+        if (configManager.isAccountLinkRequireVerification()) {
+            String discordId = accountLinkManager.getDiscordId(username);
+            
+            if (discordId != null && !accountLinkManager.isDiscordVerified(discordId)) {
+                if (!verifiedPlayers.contains(username.toLowerCase())) {
+                    accountLinkManager.requestTwoFactorAuth(username, discordId);
+                    
+                    event.setResult(
+                        PreLoginEvent.PreLoginComponentResult.denied(
+                            Component.text("§cТребуется верификация!").append(
+                                Component.newline()
+                            ).append(
+                                Component.text("§eИспользуйте команду /antibot verify <код>")
+                            ).append(
+                                Component.newline()
+                            ).append(
+                                Component.text("§7Код можно получить в Discord: /verify")
+                            ).color(NamedTextColor.RED)
+                        )
+                    );
+                    logger.info("Требуется 2FA верификация для: {} ({})", username, ip);
                     return;
                 }
             }
@@ -1058,6 +1098,53 @@ public class AntiBotPlugin {
 
     public void unblockIP(String ip) {
         blockedIps.remove(ip);
+    }
+
+    public boolean verifyPlayer(String playerName, String code) {
+        String discordId = accountLinkManager.getDiscordId(playerName);
+        if (discordId == null) {
+            return false;
+        }
+
+        Long expectedCode = discordBot.getVerificationCode(discordId);
+        if (expectedCode == null) {
+            return false;
+        }
+
+        try {
+            long providedCode = Long.parseLong(code);
+            if (providedCode == expectedCode) {
+                verifiedPlayers.add(playerName.toLowerCase());
+                accountLinkManager.markDiscordVerified(discordId);
+                accountLinkManager.completeTwoFactorAuth(playerName);
+                logger.info("Игрок {} прошёл 2FA верификацию", playerName);
+                return true;
+            }
+        } catch (NumberFormatException e) {
+            return false;
+        }
+        return false;
+    }
+
+    public boolean isPlayerVerified(String playerName) {
+        return verifiedPlayers.contains(playerName.toLowerCase());
+    }
+
+    public boolean needsVerification(String playerName) {
+        if (!configManager.isAccountLinkRequireVerification()) {
+            return false;
+        }
+        
+        String discordId = accountLinkManager.getDiscordId(playerName);
+        if (discordId == null) {
+            return false;
+        }
+        
+        if (accountLinkManager.isDiscordVerified(discordId)) {
+            return false;
+        }
+        
+        return verifiedPlayers.contains(playerName.toLowerCase());
     }
 
     @Subscribe

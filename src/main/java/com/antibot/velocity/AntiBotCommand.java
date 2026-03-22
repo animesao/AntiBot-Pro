@@ -24,6 +24,54 @@ public class AntiBotCommand implements SimpleCommand {
 
     @Override
     public void execute(Invocation invocation) {
+        String[] args = invocation.arguments();
+
+        if (args.length == 0) {
+            sendHelp(invocation);
+            return;
+        }
+
+        switch (args[0].toLowerCase()) {
+            case "verify":
+                if (args.length < 2) {
+                    invocation
+                        .source()
+                        .sendMessage(
+                            Component.text(
+                                "Использование: /antibot verify <код>"
+                            ).color(NamedTextColor.RED)
+                        );
+                    return;
+                }
+                handleVerify(invocation, args);
+                return;
+            case "update":
+                handleUpdateCheck(invocation);
+                return;
+            case "reload":
+            case "status":
+            case "stats":
+            case "blocked":
+            case "unblock":
+            case "whitelist":
+            case "linked":
+            case "discord":
+            case "accounts":
+            case "behavior":
+            case "check":
+                if (!invocation.source().hasPermission("antibot.admin")) {
+                    invocation
+                        .source()
+                        .sendMessage(
+                            Component.text(
+                                "У вас нет прав для использования этой команды!"
+                            ).color(NamedTextColor.RED)
+                        );
+                    return;
+                }
+                break;
+        }
+
         if (!invocation.source().hasPermission("antibot.admin")) {
             invocation
                 .source()
@@ -32,13 +80,6 @@ public class AntiBotCommand implements SimpleCommand {
                         "У вас нет прав для использования этой команды!"
                     ).color(NamedTextColor.RED)
                 );
-            return;
-        }
-
-        String[] args = invocation.arguments();
-
-        if (args.length == 0) {
-            sendHelp(invocation);
             return;
         }
 
@@ -141,7 +182,7 @@ public class AntiBotCommand implements SimpleCommand {
         invocation
             .source()
             .sendMessage(
-                Component.text("      AntiBot Pro v2.1.0")
+                Component.text("      AntiBot Pro v2.2.0")
                     .color(NamedTextColor.GOLD)
                     .decorate(TextDecoration.BOLD)
             );
@@ -154,6 +195,10 @@ public class AntiBotCommand implements SimpleCommand {
             );
         invocation.source().sendMessage(Component.empty());
 
+        sendCommandHelp(invocation, "/antibot verify <код>", "Верификация 2FA (для игроков)");
+        sendCommandHelp(invocation, "/antibot update", "Проверить обновления");
+        invocation.source().sendMessage(Component.empty());
+        
         sendCommandHelp(invocation, "/antibot reload", "Перезагрузить конфиг");
         sendCommandHelp(invocation, "/antibot status", "Статус защиты");
         sendCommandHelp(invocation, "/antibot stats", "Статистика обнаружений");
@@ -1237,5 +1282,76 @@ public class AntiBotCommand implements SimpleCommand {
     @Override
     public boolean hasPermission(Invocation invocation) {
         return invocation.source().hasPermission("antibot.admin");
+    }
+
+    private void handleVerify(Invocation invocation, String[] args) {
+        String code = args[1];
+        
+        if (!(invocation.source() instanceof Player)) {
+            invocation.source().sendMessage(
+                Component.text("Эта команда только для игроков!").color(NamedTextColor.RED)
+            );
+            return;
+        }
+        
+        Player player = (Player) invocation.source();
+        String playerName = player.getUsername();
+        
+        if (plugin.verifyPlayer(playerName, code)) {
+            invocation.source().sendMessage(
+                Component.text("✅ Верификация пройдена успешно!").color(NamedTextColor.GREEN)
+            );
+        } else {
+            invocation.source().sendMessage(
+                Component.text("❌ Неверный код верификации!").color(NamedTextColor.RED)
+            );
+        }
+    }
+
+    private void handleUpdateCheck(Invocation invocation) {
+        var checker = plugin.getGitHubChecker();
+        
+        invocation.source().sendMessage(
+            Component.text("═══ Проверка обновлений ═══").color(NamedTextColor.GOLD)
+        );
+        
+        invocation.source().sendMessage(
+            Component.text("Текущая версия: ")
+                .color(NamedTextColor.WHITE)
+                .append(Component.text("v" + checker.getCurrentVersion()).color(NamedTextColor.AQUA))
+        );
+        
+        if (checker.getLatestVersion() != null) {
+            invocation.source().sendMessage(
+                Component.text("Последняя версия: ")
+                    .color(NamedTextColor.WHITE)
+                    .append(Component.text("v" + checker.getLatestVersion()).color(NamedTextColor.YELLOW))
+            );
+            
+            if (checker.isUpdateAvailable()) {
+                invocation.source().sendMessage(
+                    Component.text("⚠️ Доступно обновление!").color(NamedTextColor.GOLD)
+                );
+                
+                if (checker.getLatestVersionUrl() != null) {
+                    invocation.source().sendMessage(
+                        Component.text("Скачать: ")
+                            .color(NamedTextColor.WHITE)
+                            .append(Component.text(checker.getLatestVersionUrl()).color(NamedTextColor.AQUA)
+                                .clickEvent(ClickEvent.openUrl(checker.getLatestVersionUrl())))
+                    );
+                }
+            } else {
+                invocation.source().sendMessage(
+                    Component.text("✅ У вас последняя версия!").color(NamedTextColor.GREEN)
+                );
+            }
+        } else {
+            invocation.source().sendMessage(
+                Component.text("Не удалось проверить обновления").color(NamedTextColor.RED)
+            );
+        }
+        
+        checker.checkForUpdatesAsync(null);
     }
 }

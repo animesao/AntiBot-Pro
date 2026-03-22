@@ -855,4 +855,12 @@ public class DiscordBot extends ListenerAdapter {
     public JDA getJDA() {
         return jda;
     }
+
+    public Long getVerificationCode(String discordId) {
+        return verificationCodes.get(discordId);
+    }
+
+    public void removeVerificationCode(String discordId) {
+        verificationCodes.remove(discordId);
+    }
 }
