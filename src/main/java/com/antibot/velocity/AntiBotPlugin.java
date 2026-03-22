@@ -36,7 +36,7 @@ import org.slf4j.Logger;
 @Plugin(
     id = "antibot",
     name = "AntiBot Pro",
-    version = "2.2.0",
+    version = "2.3.0",
     description = "Продвинутая защита от ботов, читов и DDoS атак с Discord интеграцией",
     authors = { "Developer" }
 )
@@ -102,7 +102,7 @@ public class AntiBotPlugin {
 
     @Subscribe
     public void onProxyInitialization(ProxyInitializeEvent event) {
-        logger.info("AntiBot Pro v2.2.0 инициализация...");
+        logger.info("AntiBot Pro v2.3.0 инициализация...");
         this.configManager = new ConfigManager(dataDirectory, logger);
         configManager.loadConfig();
 
@@ -160,7 +160,7 @@ public class AntiBotPlugin {
             "╔═══════════════════════════════════════════════════════╗"
         );
         logger.info(
-            "║     AntiBot Pro v2.2.0 загружен!                      ║"
+            "║     AntiBot Pro v2.3.0 загружен!                      ║"
         );
         logger.info(
             "║  Продвинутая защита активирована                      ║"
@@ -270,7 +270,7 @@ public class AntiBotPlugin {
     }
 
     private void setupGitHubChecker() {
-        this.githubChecker = new GitHubReleaseChecker("2.2.0");
+        this.githubChecker = new GitHubReleaseChecker("2.3.0");
         
         new Thread(() -> {
             githubChecker.checkForUpdates();
@@ -280,7 +280,7 @@ public class AntiBotPlugin {
                 logger.info("╔═══════════════════════════════════════════════════════════╗");
                 logger.info("║  🔔 ДОСТУПНО ОБНОВЛЕНИЕ AntiBot Pro!                      ║");
                 logger.info("╠═══════════════════════════════════════════════════════════╣");
-                logger.info("║  Текущая версия: v{} (устаревшая)", "2.2.0");
+                logger.info("║  Текущая версия: v{} (устаревшая)", "2.3.0");
                 logger.info("║  Новая версия:   v{} (доступна)", githubChecker.getLatestVersion());
                 logger.info("║");
                 logger.info("║  {}", githubChecker.getLatestVersionUrl());
@@ -1215,7 +1215,7 @@ public class AntiBotPlugin {
 
     @Subscribe
     public void onShutdown(ProxyShutdownEvent event) {
-        logger.info("AntiBot Pro v2.2.0 выключение...");
+        logger.info("AntiBot Pro v2.3.0 выключение...");
 
         if (discordWebhook != null) {
             discordWebhook.shutdown();

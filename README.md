@@ -1,4 +1,4 @@
-# 🛡️ AntiBot Pro v2.2.0
+# 🛡️ AntiBot Pro v2.3.0
 
 [![Java](https://img.shields.io/badge/Java-17+-orange.svg?style=for-the-badge&logo=openjdk)](https://adoptium.net/)
 [![Velocity](https://img.shields.io/badge/Velocity-3.3.0+-green.svg?style=for-the-badge&logo=minecraft)](https://papermc.io/velocity)
@@ -9,7 +9,7 @@
 **Продвинутый плагин защиты для Velocity Proxy серверов Minecraft**
 Обеспечивает комплексную защиту от **бот-атак**, **читерских клиентов**, **VPN/Proxy** и **подозрительного поведения игроков**.
 
-🆕 **Версия 2.2.0:** Рефакторинг JSON парсинга (Gson) + Исправления безопасности и производительности
+🆕 **Версия 2.3.0:** 2FA верификация + Проверка обновлений через GitHub + Ре-верификация при смене IP
 
 ---
 
@@ -80,7 +80,22 @@
 
 ---
 
-## 🆕 Что нового в v2.2.0
+## 🆕 Что нового в v2.3.0
+
+### 🔐 Система повторной верификации
+- Верификация при смене IP адреса
+- Периодическая верификация (по умолчанию каждые 24 часа)
+- Настраиваемый период верификации
+
+### 🌐 GitHub Update Checker
+- Автоматическая проверка обновлений при запуске
+- Команды `/antibot update` и `/update` в Discord
+
+### 📱 Новые команды
+- `/antibot verify <код>` - Верификация в игре
+- `/antibot reverify` - Запросить новый код
+- `/antibot update` - Проверить обновления
+- `/update` - Проверить обновления (Discord)
 
 ### 🛠️ Исправления и улучшения
 
@@ -130,7 +145,7 @@ src/main/java/com/antibot/velocity/
 
 ## 📥 Установка
 
-1. Скачайте готовый файл плагина: `AntiBot-Pro-2.2.0.jar`
+1. Скачайте готовый файл плагина: `AntiBot-Pro-2.3.0.jar`
 2. Скопируйте его в папку `plugins/` вашего Velocity сервера
 3. Перезапустите сервер
 4. Отредактируйте конфигурацию в `plugins/antibot/config.yml`
@@ -300,7 +315,7 @@ mvn install
 
 Готовый файл плагина будет находиться в папке `target/`:
 ```
-target/AntiBot-Pro-2.2.0.jar
+target/AntiBot-Pro-2.3.0.jar
 ```
 
 ---
@@ -332,6 +347,6 @@ target/AntiBot-Pro-2.2.0.jar
 ---
 
 <p align="center">
-  <b>🔥 AntiBot Pro v2.2.0 — максимальная защита вашего Velocity-сервера</b><br>
+  <b>🔥 AntiBot Pro v2.3.0 — максимальная защита вашего Velocity-сервера</b><br>
   <i>От атак, ботов, читеров и злоупотреблений + Discord интеграция</i>
 </p>

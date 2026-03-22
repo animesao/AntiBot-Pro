@@ -185,7 +185,7 @@ public class AntiBotCommand implements SimpleCommand {
         invocation
             .source()
             .sendMessage(
-                Component.text("      AntiBot Pro v2.2.0")
+                Component.text("      AntiBot Pro v2.3.0")
                     .color(NamedTextColor.GOLD)
                     .decorate(TextDecoration.BOLD)
             );
@@ -278,7 +278,7 @@ public class AntiBotCommand implements SimpleCommand {
         invocation
             .source()
             .sendMessage(
-                Component.text("      AntiBot Pro v2.2.0")
+                Component.text("      AntiBot Pro v2.3.0")
                     .color(NamedTextColor.GOLD)
                     .decorate(TextDecoration.BOLD)
             );

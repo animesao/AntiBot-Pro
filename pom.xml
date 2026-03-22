@@ -8,7 +8,7 @@
 
     <groupId>com.antibot</groupId>
     <artifactId>antibot-pro</artifactId>
-    <version>2.2.0</version>
+    <version>2.3.0</version>
     <packaging>jar</packaging>
 
     <name>AntiBot Pro</name>

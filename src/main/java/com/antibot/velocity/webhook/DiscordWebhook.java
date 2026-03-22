@@ -24,7 +24,7 @@ public class DiscordWebhook {
 
     private static final Logger logger = LoggerFactory.getLogger(DiscordWebhook.class);
     private static final Gson gson = new GsonBuilder().create();
-    private static final String VERSION = "2.2.0";
+    private static final String VERSION = "2.3.0";
 
     private final ExecutorService executor = Executors.newCachedThreadPool(r -> {
         Thread t = new Thread(r, "DiscordWebhook-Worker");

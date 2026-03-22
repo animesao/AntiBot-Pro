@@ -245,7 +245,7 @@ public class DiscordBot extends ListenerAdapter {
             embed.addField("Статус", "❌ Не удалось проверить обновления", false);
         }
         
-        embed.setFooter("AntiBot Pro v2.2.0");
+        embed.setFooter("AntiBot Pro v2.3.0");
         embed.setTimestamp(Instant.now());
         
         event.replyEmbeds(embed.build()).queue();
@@ -771,7 +771,7 @@ public class DiscordBot extends ListenerAdapter {
                     embed.setDescription(
                         "Ваш Discord аккаунт успешно верифицирован!\nТеперь используйте `/link <ник>` для привязки."
                     );
-                    embed.setFooter("AntiBot Pro v2.2.0");
+                    embed.setFooter("AntiBot Pro v2.3.0");
                     embed.setTimestamp(Instant.now());
 
                     event.getChannel().sendMessageEmbeds(embed.build()).queue();
