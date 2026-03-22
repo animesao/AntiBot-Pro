@@ -1,2 +1,25 @@
-AntiBot-Pro-2.0.0
-AntiBot-Pro-2.0.0.jar
+# Build outputs
+target/
+bin/
+build/
+
+# IDE
+.settings/
+.gradle/
+.idea/
+*.iml
+
+# Eclipse
+.project
+.classpath
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Old JARs
+AntiBot-Pro-*.jar
+original-*.jar
