@@ -271,7 +271,25 @@ public class AntiBotPlugin {
 
     private void setupGitHubChecker() {
         this.githubChecker = new GitHubReleaseChecker("2.2.0");
-        githubChecker.checkForUpdatesAsync(null);
+        
+        new Thread(() -> {
+            githubChecker.checkForUpdates();
+            
+            if (githubChecker.isUpdateAvailable()) {
+                logger.info("");
+                logger.info("╔═══════════════════════════════════════════════════════════╗");
+                logger.info("║  🔔 ДОСТУПНО ОБНОВЛЕНИЕ AntiBot Pro!                      ║");
+                logger.info("╠═══════════════════════════════════════════════════════════╣");
+                logger.info("║  Текущая версия: v{} (устаревшая)", "2.2.0");
+                logger.info("║  Новая версия:   v{} (доступна)", githubChecker.getLatestVersion());
+                logger.info("║");
+                logger.info("║  {}", githubChecker.getLatestVersionUrl());
+                logger.info("║");
+                logger.info("║  Для обновления скачайте новую версию с GitHub");
+                logger.info("╚═══════════════════════════════════════════════════════════╝");
+                logger.info("");
+            }
+        }, "GitHub-Update-Check").start();
     }
 
     public GitHubReleaseChecker getGitHubChecker() {

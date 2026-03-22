@@ -143,7 +143,9 @@ public class DiscordBot extends ListenerAdapter {
                     .upsertCommand("whitelist", "Управление whitelist")
                     .addOption(OptionType.STRING, "action", "add/remove", true)
                     .addOption(OptionType.STRING, "type", "ip/player", true)
-                    .addOption(OptionType.STRING, "value", "Значение", true)
+                    .addOption(OptionType.STRING, "value", "Значение", true),
+                // Команда /update - Проверить обновления
+                jda.upsertCommand("update", "Проверить обновления AntiBot")
             )
             .queue();
     }
@@ -207,8 +209,46 @@ public class DiscordBot extends ListenerAdapter {
                 case "whitelist":
                     handleWhitelistCommand(event);
                     break;
+                case "update":
+                    handleUpdateCommand(event);
+                    break;
             }
         });
+    }
+
+    private void handleUpdateCommand(SlashCommandInteractionEvent event) {
+        plugin.getGitHubChecker().checkForUpdates();
+        
+        EmbedBuilder embed = new EmbedBuilder();
+        embed.setTitle("Проверка обновлений AntiBot Pro");
+        embed.setColor(Color.CYAN);
+        
+        embed.addField("Текущая версия", "v" + plugin.getGitHubChecker().getCurrentVersion(), true);
+        
+        if (plugin.getGitHubChecker().getLatestVersion() != null) {
+            embed.addField("Последняя версия", "v" + plugin.getGitHubChecker().getLatestVersion(), true);
+            
+            if (plugin.getGitHubChecker().isUpdateAvailable()) {
+                embed.setColor(Color.YELLOW);
+                embed.setTitle("⚠️ ДОСТУПНО ОБНОВЛЕНИЕ!");
+                embed.addField("Статус", "Доступна новая версия!", false);
+                
+                if (plugin.getGitHubChecker().getLatestVersionUrl() != null) {
+                    embed.addField("Скачать", "[GitHub Releases](" + plugin.getGitHubChecker().getLatestVersionUrl() + ")", false);
+                }
+            } else {
+                embed.setColor(Color.GREEN);
+                embed.addField("Статус", "✅ У вас последняя версия!", false);
+            }
+        } else {
+            embed.setColor(Color.RED);
+            embed.addField("Статус", "❌ Не удалось проверить обновления", false);
+        }
+        
+        embed.setFooter("AntiBot Pro v2.2.0");
+        embed.setTimestamp(Instant.now());
+        
+        event.replyEmbeds(embed.build()).queue();
     }
 
     /**
