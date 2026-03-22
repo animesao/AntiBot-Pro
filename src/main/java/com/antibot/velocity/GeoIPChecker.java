@@ -78,7 +78,7 @@ public class GeoIPChecker {
 
     private GeoData fetchFromAPI(String ip) {
         try {
-            URL url = new URL("http://ip-api.com/json/" + ip + "?fields=status,country,countryCode,city,isp,as,lat,lon,timezone");
+            URL url = new URL("https://ip-api.com/json/" + ip + "?fields=status,country,countryCode,city,isp,as,lat,lon,timezone");
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
             conn.setConnectTimeout(3000);

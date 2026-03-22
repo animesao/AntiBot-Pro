@@ -8,7 +8,7 @@
 
     <groupId>com.antibot</groupId>
     <artifactId>antibot-pro</artifactId>
-    <version>2.1.0</version>
+    <version>2.2.0</version>
     <packaging>jar</packaging>
 
     <name>AntiBot Pro</name>
@@ -50,6 +50,12 @@
             <groupId>net.dv8tion</groupId>
             <artifactId>JDA</artifactId>
             <version>5.0.0-beta.20</version>
+        </dependency>
+        <!-- Gson for JSON -->
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.10.1</version>
         </dependency>
     </dependencies>
 
@@ -107,6 +113,11 @@
                                     <pattern>okhttp3</pattern>
                                     <shadedPattern
                                     >com.antibot.libs.okhttp3</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.google.gson</pattern>
+                                    <shadedPattern
+                                    >com.antibot.libs.gson</shadedPattern>
                                 </relocation>
                             </relocations>
                             <finalName

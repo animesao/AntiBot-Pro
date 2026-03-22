@@ -97,7 +97,7 @@ public class VPNProxyDetector {
 
     private DetectionResult checkWithAPI(String ip, String apiKey) {
         try {
-            URL url = new URL("http://proxycheck.io/v2/" + ip + "?key=" + apiKey + "&vpn=1&asn=1&risk=1");
+            URL url = new URL("https://proxycheck.io/v2/" + ip + "?key=" + apiKey + "&vpn=1&asn=1&risk=1");
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
             conn.setConnectTimeout(5000);

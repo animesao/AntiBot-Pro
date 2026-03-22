@@ -40,7 +40,6 @@ public class ClientBrandDetector {
         "skilled", "skilledclient",
         "flux", "fluxclient",
         "autumn", "autumnclient",
-        "azura", "azuraclient",
         "crystalaura", "crystal",
         "skid", "skidclient",
         "hack", "hacked", "hackclient",

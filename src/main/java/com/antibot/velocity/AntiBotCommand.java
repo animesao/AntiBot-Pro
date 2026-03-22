@@ -229,9 +229,9 @@ public class AntiBotCommand implements SimpleCommand {
         invocation
             .source()
             .sendMessage(
-                Component.text("══════ Статус AntiBot Pro ══════").color(
-                    NamedTextColor.GOLD
-                )
+                Component.text("      AntiBot Pro v2.2.0")
+                    .color(NamedTextColor.GOLD)
+                    .decorate(TextDecoration.BOLD)
             );
 
         invocation
@@ -1145,15 +1145,7 @@ public class AntiBotCommand implements SimpleCommand {
                 bot.shutdown();
             }
             plugin.reloadConfig();
-
-            new Thread(
-                () -> {
-                    DiscordBot newBot = new DiscordBot(plugin);
-                    // Повторная инициализация
-                },
-                "DiscordBot-Reload"
-            )
-                .start();
+            plugin.setupDiscordBot();
 
             invocation
                 .source()

@@ -13,6 +13,7 @@ import com.velocitypowered.api.event.connection.PluginMessageEvent;
 import com.velocitypowered.api.event.connection.PreLoginEvent;
 import com.velocitypowered.api.event.player.ServerConnectedEvent;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
+import com.velocitypowered.api.event.proxy.ProxyShutdownEvent;
 import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.Player;
@@ -34,7 +35,7 @@ import org.slf4j.Logger;
 @Plugin(
     id = "antibot",
     name = "AntiBot Pro",
-    version = "2.1.0",
+    version = "2.2.0",
     description = "Продвинутая защита от ботов, читов и DDoS атак с Discord интеграцией",
     authors = { "Developer" }
 )
@@ -98,6 +99,7 @@ public class AntiBotPlugin {
 
     @Subscribe
     public void onProxyInitialization(ProxyInitializeEvent event) {
+        logger.info("AntiBot Pro v2.2.0 инициализация...");
         this.configManager = new ConfigManager(dataDirectory, logger);
         configManager.loadConfig();
 
@@ -154,7 +156,7 @@ public class AntiBotPlugin {
             "╔═══════════════════════════════════════════════════════╗"
         );
         logger.info(
-            "║     AntiBot Pro v2.1.0 загружен!                      ║"
+            "║     AntiBot Pro v2.2.0 загружен!                      ║"
         );
         logger.info(
             "║  Продвинутая защита активирована                      ║"
@@ -213,7 +215,7 @@ public class AntiBotPlugin {
         );
     }
 
-    private void setupDiscordBot() {
+    public void setupDiscordBot() {
         if (!configManager.isDiscordBotEnabled()) {
             logger.info("Discord Bot отключен в конфигурации");
             return;
@@ -1056,5 +1058,24 @@ public class AntiBotPlugin {
 
     public void unblockIP(String ip) {
         blockedIps.remove(ip);
+    }
+
+    @Subscribe
+    public void onShutdown(ProxyShutdownEvent event) {
+        logger.info("AntiBot Pro v2.2.0 выключение...");
+
+        if (discordWebhook != null) {
+            discordWebhook.shutdown();
+        }
+
+        if (discordBot != null) {
+            discordBot.shutdown();
+        }
+
+        if (accountLinkManager != null) {
+            accountLinkManager.save();
+        }
+
+        logger.info("AntiBot Pro успешно выключен!");
     }
 }
