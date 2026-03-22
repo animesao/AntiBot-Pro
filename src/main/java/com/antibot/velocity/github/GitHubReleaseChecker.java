@@ -1,5 +1,6 @@
 package com.antibot.velocity.github;
 
+import com.antibot.velocity.AntiBotPlugin;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
@@ -34,17 +35,20 @@ public class GitHubReleaseChecker {
         return t;
     });
 
-    private volatile String currentVersion;
     private volatile String latestVersion;
     private volatile String latestVersionUrl;
     private volatile String latestVersionBody;
     private volatile long lastCheckTime = 0;
     private volatile boolean updateAvailable = false;
     private volatile boolean checking = false;
+    private volatile boolean checkedOnce = false;
     private static final long CHECK_INTERVAL = TimeUnit.HOURS.toMillis(6);
 
-    public GitHubReleaseChecker(String currentVersion) {
-        this.currentVersion = currentVersion;
+    public GitHubReleaseChecker() {
+    }
+
+    public String getCurrentVersion() {
+        return AntiBotPlugin.getVersion();
     }
 
     public void checkForUpdates() {
@@ -79,7 +83,7 @@ public class GitHubReleaseChecker {
         HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
         connection.setRequestMethod("GET");
         connection.setRequestProperty("Accept", "application/vnd.github.v3+json");
-        connection.setRequestProperty("User-Agent", "AntiBot-Pro/" + currentVersion);
+        connection.setRequestProperty("User-Agent", "AntiBot-Pro/" + getCurrentVersion());
         connection.setConnectTimeout(CONNECTION_TIMEOUT);
         connection.setReadTimeout(READ_TIMEOUT);
 
@@ -119,17 +123,17 @@ public class GitHubReleaseChecker {
                 latestVersionBody = release.get("body").getAsString();
             }
             
-            updateAvailable = isNewerVersion(latestVersion, currentVersion);
+            updateAvailable = isNewerVersion(latestVersion, getCurrentVersion());
             
             if (updateAvailable) {
                 logger.info("═══════════════════════════════════════════════════════════");
                 logger.info("  ДОСТУПНО ОБНОВЛЕНИЕ!");
-                logger.info("  Текущая версия: v{}", currentVersion);
+                logger.info("  Текущая версия: v{}", getCurrentVersion());
                 logger.info("  Новая версия:   v{}", latestVersion);
                 logger.info("  {}", latestVersionUrl);
                 logger.info("═══════════════════════════════════════════════════════════");
             } else {
-                logger.info("AntiBot Pro v{} - у вас последняя версия", currentVersion);
+                logger.info("AntiBot Pro v{} - у вас последняя версия", getCurrentVersion());
             }
         } catch (Exception e) {
             logger.error("Ошибка парсинга ответа GitHub: {}", e.getMessage());
@@ -166,10 +170,6 @@ public class GitHubReleaseChecker {
             }
         }
         return num.length() > 0 ? Integer.parseInt(num.toString()) : 0;
-    }
-
-    public String getCurrentVersion() {
-        return currentVersion;
     }
 
     public String getLatestVersion() {

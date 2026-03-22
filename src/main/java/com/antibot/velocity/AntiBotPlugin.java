@@ -42,6 +42,7 @@ import org.slf4j.Logger;
 )
 public class AntiBotPlugin {
 
+    private static final String VERSION = "2.3.0";
     private static final ChannelIdentifier BRAND_CHANNEL =
         MinecraftChannelIdentifier.create("minecraft", "brand");
 
@@ -270,7 +271,7 @@ public class AntiBotPlugin {
     }
 
     private void setupGitHubChecker() {
-        this.githubChecker = new GitHubReleaseChecker("2.3.0");
+        this.githubChecker = new GitHubReleaseChecker();
         
         new Thread(() -> {
             githubChecker.checkForUpdates();
@@ -294,6 +295,10 @@ public class AntiBotPlugin {
 
     public GitHubReleaseChecker getGitHubChecker() {
         return githubChecker;
+    }
+
+    public static String getVersion() {
+        return VERSION;
     }
 
     @Subscribe
