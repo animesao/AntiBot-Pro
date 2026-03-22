@@ -903,4 +903,23 @@ public class DiscordBot extends ListenerAdapter {
     public void removeVerificationCode(String discordId) {
         verificationCodes.remove(discordId);
     }
+
+    public void setVerificationCode(String discordId, long code) {
+        verificationCodes.put(discordId, code);
+    }
+
+    public void sendVerificationCode(String discordId, long code) {
+        jda.retrieveUserById(discordId).queue(user -> {
+            user.openPrivateChannel().queue(channel -> {
+                EmbedBuilder embed = new EmbedBuilder();
+                embed.setTitle("🔐 Код верификации");
+                embed.setColor(Color.ORANGE);
+                embed.setDescription("Ваш код верификации: **" + code + "**");
+                embed.addField("Инструкция", "Введите команду в игре:\n`/antibot verify " + code + "`", false);
+                embed.setFooter("Код действителен 5 минут");
+                embed.setTimestamp(Instant.now());
+                channel.sendMessageEmbeds(embed.build()).queue();
+            });
+        });
+    }
 }

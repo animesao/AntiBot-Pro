@@ -45,6 +45,9 @@ public class AntiBotCommand implements SimpleCommand {
                 }
                 handleVerify(invocation, args);
                 return;
+            case "reverify":
+                handleReverify(invocation);
+                return;
             case "update":
                 handleUpdateCheck(invocation);
                 return;
@@ -196,6 +199,7 @@ public class AntiBotCommand implements SimpleCommand {
         invocation.source().sendMessage(Component.empty());
 
         sendCommandHelp(invocation, "/antibot verify <код>", "Верификация 2FA (для игроков)");
+        sendCommandHelp(invocation, "/antibot reverify", "Запросить новый код верификации");
         sendCommandHelp(invocation, "/antibot update", "Проверить обновления");
         invocation.source().sendMessage(Component.empty());
         
@@ -1296,14 +1300,55 @@ public class AntiBotCommand implements SimpleCommand {
         
         Player player = (Player) invocation.source();
         String playerName = player.getUsername();
+        String ip = player.getRemoteAddress().getAddress().getHostAddress();
         
-        if (plugin.verifyPlayer(playerName, code)) {
+        if (plugin.verifyPlayer(playerName, code, ip)) {
             invocation.source().sendMessage(
                 Component.text("✅ Верификация пройдена успешно!").color(NamedTextColor.GREEN)
             );
         } else {
             invocation.source().sendMessage(
                 Component.text("❌ Неверный код верификации!").color(NamedTextColor.RED)
+            );
+        }
+    }
+
+    private void handleReverify(Invocation invocation) {
+        if (!(invocation.source() instanceof Player)) {
+            invocation.source().sendMessage(
+                Component.text("Эта команда только для игроков!").color(NamedTextColor.RED)
+            );
+            return;
+        }
+        
+        Player player = (Player) invocation.source();
+        String playerName = player.getUsername();
+        
+        var accountManager = plugin.getAccountLinkManager();
+        String discordId = accountManager.getDiscordId(playerName);
+        
+        if (discordId == null) {
+            invocation.source().sendMessage(
+                Component.text("❌ Ваш аккаунт не привязан к Discord!").color(NamedTextColor.RED)
+            );
+            return;
+        }
+        
+        var discordBot = plugin.getDiscordBot();
+        if (discordBot != null) {
+            long code = 100000 + new java.util.Random().nextInt(900000);
+            discordBot.setVerificationCode(discordId, code);
+            discordBot.sendVerificationCode(discordId, code);
+            
+            invocation.source().sendMessage(
+                Component.text("✅ Код верификации отправлен в Discord (ЛС)!").color(NamedTextColor.GREEN)
+            );
+            invocation.source().sendMessage(
+                Component.text("§7Введите: §e/antibot verify " + code).color(NamedTextColor.GRAY)
+            );
+        } else {
+            invocation.source().sendMessage(
+                Component.text("❌ Discord бот не подключён!").color(NamedTextColor.RED)
             );
         }
     }

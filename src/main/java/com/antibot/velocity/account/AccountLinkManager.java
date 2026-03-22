@@ -28,6 +28,8 @@ public class AccountLinkManager {
     private final Map<String, Long> discordLinkTime = new ConcurrentHashMap<>();
     private final Map<String, Long> pendingTwoFactorAuth = new ConcurrentHashMap<>();
     private final Map<String, String> pendingTwoFactorUsers = new ConcurrentHashMap<>();
+    private final Map<String, String> playerLastKnownIP = new ConcurrentHashMap<>();
+    private final Map<String, Long> playerLastVerified = new ConcurrentHashMap<>();
 
     private boolean autoWhitelistEnabled;
     private boolean dmNotificationEnabled;
@@ -186,6 +188,35 @@ public class AccountLinkManager {
         if (discordId != null) {
             pendingTwoFactorAuth.remove(discordId);
         }
+    }
+
+    public void updatePlayerIP(String playerName, String ip) {
+        String normalizedName = playerName.toLowerCase();
+        playerLastKnownIP.put(normalizedName, ip);
+    }
+
+    public String getPlayerLastIP(String playerName) {
+        return playerLastKnownIP.get(playerName.toLowerCase());
+    }
+
+    public void updateLastVerified(String playerName) {
+        playerLastVerified.put(playerName.toLowerCase(), System.currentTimeMillis());
+    }
+
+    public void markPlayerVerified(String playerName) {
+        playerLastVerified.put(playerName.toLowerCase(), System.currentTimeMillis());
+    }
+
+    public Long getLastVerifiedTime(String playerName) {
+        return playerLastVerified.get(playerName.toLowerCase());
+    }
+
+    public boolean needsPeriodicReverify(String playerName, int periodHours) {
+        Long lastVerified = playerLastVerified.get(playerName.toLowerCase());
+        if (lastVerified == null) return true;
+        
+        long periodMs = periodHours * 60L * 60L * 1000L;
+        return System.currentTimeMillis() - lastVerified > periodMs;
     }
 
     public boolean hasTrustedRole(String discordId) {

@@ -98,6 +98,11 @@ public class ConfigManager {
     private boolean accountLinkRequireVerification = false;
     private List<String> accountLinkTrustedRoles = new ArrayList<>();
 
+    // Настройки повторной верификации
+    private boolean reverifyOnIpChange = true;
+    private boolean reverifyPeriodic = true;
+    private int reverifyPeriodHours = 24;
+
     public ConfigManager(Path dataDirectory, Logger logger) {
         this.dataDirectory = dataDirectory;
         this.logger = logger;
@@ -429,6 +434,21 @@ public class ConfigManager {
                             "trusted-roles",
                             accountLinkTrustedRoles
                         );
+                        reverifyOnIpChange = getBoolean(
+                            accountLink,
+                            "reverify-on-ip-change",
+                            reverifyOnIpChange
+                        );
+                        reverifyPeriodic = getBoolean(
+                            accountLink,
+                            "reverify-periodic",
+                            reverifyPeriodic
+                        );
+                        reverifyPeriodHours = getInt(
+                            accountLink,
+                            "reverify-period-hours",
+                            reverifyPeriodHours
+                        );
                     }
 
                     Map<String, Object> whitelist = getMap(config, "whitelist");
@@ -613,6 +633,9 @@ public class ConfigManager {
         accountLink.put("max-per-discord", 3);
         accountLink.put("require-verification", false);
         accountLink.put("trusted-roles", new ArrayList<>());
+        accountLink.put("reverify-on-ip-change", true);
+        accountLink.put("reverify-periodic", true);
+        accountLink.put("reverify-period-hours", 24);
         config.put("account-linking", accountLink);
 
         Map<String, Object> whitelist = new LinkedHashMap<>();
@@ -978,5 +1001,17 @@ public class ConfigManager {
 
     public List<String> getAccountLinkTrustedRoles() {
         return accountLinkTrustedRoles;
+    }
+
+    public boolean isReverifyOnIpChange() {
+        return reverifyOnIpChange;
+    }
+
+    public boolean isReverifyPeriodic() {
+        return reverifyPeriodic;
+    }
+
+    public int getReverifyPeriodHours() {
+        return reverifyPeriodHours;
     }
 }

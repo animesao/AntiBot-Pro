@@ -498,24 +498,54 @@ public class AntiBotPlugin {
         if (configManager.isAccountLinkRequireVerification()) {
             String discordId = accountLinkManager.getDiscordId(username);
             
-            if (discordId != null && !accountLinkManager.isDiscordVerified(discordId)) {
-                if (!verifiedPlayers.contains(username.toLowerCase())) {
+            if (discordId != null) {
+                boolean needsReverify = false;
+                String reason = "";
+                
+                // Проверка на смену IP
+                if (configManager.isReverifyOnIpChange()) {
+                    String lastIP = accountLinkManager.getPlayerLastIP(username);
+                    if (lastIP != null && !lastIP.equals(ip)) {
+                        needsReverify = true;
+                        reason = "Смена IP адреса";
+                    }
+                }
+                
+                // Проверка на периодическую верификацию
+                if (!needsReverify && configManager.isReverifyPeriodic()) {
+                    if (accountLinkManager.needsPeriodicReverify(username, configManager.getReverifyPeriodHours())) {
+                        needsReverify = true;
+                        reason = "Истёк срок верификации (" + configManager.getReverifyPeriodHours() + " ч.)";
+                    }
+                }
+                
+                // Проверка на неверифицированного пользователя
+                if (!accountLinkManager.isDiscordVerified(discordId)) {
+                    needsReverify = true;
+                    reason = "Требуется начальная верификация";
+                }
+                
+                if (needsReverify && !verifiedPlayers.contains(username.toLowerCase())) {
                     accountLinkManager.requestTwoFactorAuth(username, discordId);
                     
                     event.setResult(
                         PreLoginEvent.PreLoginComponentResult.denied(
-                            Component.text("§cТребуется верификация!").append(
+                            Component.text("§c⚠️ Требуется верификация!").append(
                                 Component.newline()
                             ).append(
-                                Component.text("§eИспользуйте команду /antibot verify <код>")
+                                Component.text("§eПричина: §f" + reason)
                             ).append(
                                 Component.newline()
                             ).append(
-                                Component.text("§7Код можно получить в Discord: /verify")
+                                Component.text("§7Используйте: §e/antibot verify <код>")
+                            ).append(
+                                Component.newline()
+                            ).append(
+                                Component.text("§7Код в Discord: §e/verify")
                             ).color(NamedTextColor.RED)
                         )
                     );
-                    logger.info("Требуется 2FA верификация для: {} ({})", username, ip);
+                    logger.info("Требуется ре-верификация для: {} ({}) - {}", username, ip, reason);
                     return;
                 }
             }
@@ -674,6 +704,13 @@ public class AntiBotPlugin {
                 System.currentTimeMillis()
             );
             totalPlayerJoins.incrementAndGet();
+
+            if (configManager.isAccountLinkRequireVerification()) {
+                String discordId = accountLinkManager.getDiscordId(username);
+                if (discordId != null) {
+                    accountLinkManager.updatePlayerIP(username, ip);
+                }
+            }
 
             logger.info("Игрок {} подключился с IP {}", username, ip);
         }
@@ -1119,6 +1156,10 @@ public class AntiBotPlugin {
     }
 
     public boolean verifyPlayer(String playerName, String code) {
+        return verifyPlayer(playerName, code, null);
+    }
+
+    public boolean verifyPlayer(String playerName, String code, String currentIp) {
         String discordId = accountLinkManager.getDiscordId(playerName);
         if (discordId == null) {
             return false;
@@ -1134,8 +1175,15 @@ public class AntiBotPlugin {
             if (providedCode == expectedCode) {
                 verifiedPlayers.add(playerName.toLowerCase());
                 accountLinkManager.markDiscordVerified(discordId);
+                accountLinkManager.markPlayerVerified(playerName);
                 accountLinkManager.completeTwoFactorAuth(playerName);
-                logger.info("Игрок {} прошёл 2FA верификацию", playerName);
+                
+                if (currentIp != null) {
+                    accountLinkManager.updatePlayerIP(playerName, currentIp);
+                }
+                
+                discordBot.removeVerificationCode(discordId);
+                logger.info("Игрок {} прошёл верификацию", playerName);
                 return true;
             }
         } catch (NumberFormatException e) {
