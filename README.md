@@ -25,6 +25,8 @@
 - [Команды в игре](#-команды-в-игре)
 - [Сборка](#-сборка)
 - [Требования](#-требования)
+- [Changelog](CHANGELOG.md)
+- [История версий](versions/)
 
 ---
 
@@ -320,6 +322,12 @@ target/AntiBot-Pro-2.2.0.jar
 - **ProxyCheck API**: [https://proxycheck.io/](https://proxycheck.io/)
 - **ip-api.com**: [https://ip-api.com/](https://ip-api.com/)
 - **Discord Developer Portal**: [https://discord.com/developers/applications](https://discord.com/developers/applications)
+
+---
+
+## 📜 Changelog
+
+См. полную историю изменений в [CHANGELOG.md](CHANGELOG.md) и [версии](versions/)
 
 ---
 
