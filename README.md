@@ -4,7 +4,7 @@
 [![Velocity](https://img.shields.io/badge/Velocity-3.3.0+-green.svg?style=for-the-badge&logo=minecraft)](https://papermc.io/velocity)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
 [![Build](https://img.shields.io/badge/Build-Maven-red.svg?style=for-the-badge&logo=apache-maven)](https://maven.apache.org/)
-[![Discord](https://img.shields.io/badge/Discord-Бот-5865F2.svg?style=for-the-badge&logo=discord)](https://discord.com/)
+[![Discord](https://img.shields.io/badge/Discord-Бот-5865F2.svg?style=for-the-badge&logo=discord)](https://dsc.gg/alfheimguide)
 
 **Продвинутый плагин защиты для Velocity Proxy серверов Minecraft**
 Обеспечивает комплексную защиту от **бот-атак**, **читерских клиентов**, **VPN/Proxy** и **подозрительного поведения игроков**.
