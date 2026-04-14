@@ -1,21 +1,36 @@
 package com.antibot.velocity;
 
+import com.antibot.velocity.util.RateLimiter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 public class GeoIPChecker {
 
+    private static final Logger logger = LoggerFactory.getLogger(GeoIPChecker.class);
     private final Map<String, CachedGeoData> cache = new ConcurrentHashMap<>();
     private static final long CACHE_DURATION = TimeUnit.HOURS.toMillis(24);
+    private final RateLimiter rateLimiter;
 
     private Set<String> allowedCountries = new HashSet<>();
     private Set<String> blockedCountries = new HashSet<>();
     private boolean whitelistMode = false;
+
+    public GeoIPChecker() {
+        this(40); // По умолчанию 40 запросов/минуту
+    }
+
+    public GeoIPChecker(int requestsPerMinute) {
+        this.rateLimiter = new RateLimiter(requestsPerMinute);
+    }
 
     public static class GeoData {
         private final String countryCode;
@@ -76,13 +91,39 @@ public class GeoIPChecker {
         return data;
     }
 
+    /**
+     * Асинхронный lookup с rate limiting
+     */
+    public CompletableFuture<GeoData> lookupAsync(String ip) {
+        return CompletableFuture.supplyAsync(() -> {
+            // Проверка кэша
+            CachedGeoData cached = cache.get(ip);
+            if (cached != null && !cached.isExpired()) {
+                return cached.data;
+            }
+
+            // Rate limiting
+            if (!rateLimiter.tryAcquire("geoip", 5000)) {
+                logger.warn("GeoIP rate limit exceeded for IP: {}", ip);
+                return new GeoData("XX", "Unknown", "Unknown", "Unknown", "Unknown", 0, 0, "Unknown");
+            }
+
+            GeoData data = fetchFromAPI(ip);
+            if (data != null) {
+                cache.put(ip, new CachedGeoData(data));
+            }
+            return data;
+        });
+    }
+
     private GeoData fetchFromAPI(String ip) {
         try {
             URL url = new URL("https://ip-api.com/json/" + ip + "?fields=status,country,countryCode,city,isp,as,lat,lon,timezone");
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
-            conn.setConnectTimeout(3000);
-            conn.setReadTimeout(3000);
+            conn.setConnectTimeout(5000);
+            conn.setReadTimeout(5000);
+            conn.setRequestProperty("User-Agent", "AntiBot-Pro/2.3.0");
 
             if (conn.getResponseCode() == 200) {
                 BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
@@ -208,5 +249,14 @@ public class GeoIPChecker {
 
     public void cleanupExpiredCache() {
         cache.entrySet().removeIf(entry -> entry.getValue().isExpired());
+        rateLimiter.cleanup();
+    }
+
+    public int getCacheSize() {
+        return cache.size();
+    }
+
+    public int getCurrentRequestRate() {
+        return rateLimiter.getCurrentCount("geoip");
     }
 }

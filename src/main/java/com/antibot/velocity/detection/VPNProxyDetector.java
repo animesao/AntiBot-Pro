@@ -1,17 +1,24 @@
 package com.antibot.velocity.detection;
 
+import com.antibot.velocity.util.RateLimiter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 public class VPNProxyDetector {
 
+    private static final Logger logger = LoggerFactory.getLogger(VPNProxyDetector.class);
     private final Map<String, CachedResult> cache = new ConcurrentHashMap<>();
     private static final long CACHE_DURATION = TimeUnit.HOURS.toMillis(6);
+    private final RateLimiter rateLimiter;
     
     private static final Set<String> KNOWN_VPN_ASN_PREFIXES = new HashSet<>(Arrays.asList(
         "AS9009", "AS20473", "AS14061", "AS16276", "AS24940", "AS60068",
@@ -26,6 +33,14 @@ public class VPNProxyDetector {
     ));
 
     private static final Set<String> BLOCKED_IP_RANGES = new HashSet<>();
+
+    public VPNProxyDetector() {
+        this(100); // По умолчанию 100 запросов/минуту
+    }
+
+    public VPNProxyDetector(int requestsPerMinute) {
+        this.rateLimiter = new RateLimiter(requestsPerMinute);
+    }
 
     public static class DetectionResult {
         private final boolean isProxy;
@@ -95,6 +110,36 @@ public class VPNProxyDetector {
         return result;
     }
 
+    /**
+     * Асинхронная проверка IP с rate limiting
+     */
+    public CompletableFuture<DetectionResult> checkIPAsync(String ip, String apiKey) {
+        return CompletableFuture.supplyAsync(() -> {
+            // Проверка кэша
+            CachedResult cached = cache.get(ip);
+            if (cached != null && !cached.isExpired()) {
+                return cached.result;
+            }
+
+            DetectionResult result;
+            
+            if (apiKey != null && !apiKey.isEmpty()) {
+                // Rate limiting для API
+                if (!rateLimiter.tryAcquire("vpn", 5000)) {
+                    logger.warn("VPN API rate limit exceeded for IP: {}", ip);
+                    result = performBasicCheck(ip);
+                } else {
+                    result = checkWithAPI(ip, apiKey);
+                }
+            } else {
+                result = performBasicCheck(ip);
+            }
+
+            cache.put(ip, new CachedResult(result));
+            return result;
+        });
+    }
+
     private DetectionResult checkWithAPI(String ip, String apiKey) {
         try {
             URL url = new URL("https://proxycheck.io/v2/" + ip + "?key=" + apiKey + "&vpn=1&asn=1&risk=1");
@@ -102,6 +147,7 @@ public class VPNProxyDetector {
             conn.setRequestMethod("GET");
             conn.setConnectTimeout(5000);
             conn.setReadTimeout(5000);
+            conn.setRequestProperty("User-Agent", "AntiBot-Pro/2.3.0");
 
             if (conn.getResponseCode() == 200) {
                 BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
@@ -251,5 +297,14 @@ public class VPNProxyDetector {
 
     public void cleanupExpiredCache() {
         cache.entrySet().removeIf(entry -> entry.getValue().isExpired());
+        rateLimiter.cleanup();
+    }
+
+    public int getCacheSize() {
+        return cache.size();
+    }
+
+    public int getCurrentRequestRate() {
+        return rateLimiter.getCurrentCount("vpn");
     }
 }

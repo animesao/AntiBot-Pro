@@ -1,4 +1,4 @@
-# 🛡️ AntiBot Pro v2.3.0
+# 🛡️ AntiBot Pro v2.4.0
 
 [![Java](https://img.shields.io/badge/Java-17+-orange.svg?style=for-the-badge&logo=openjdk)](https://adoptium.net/)
 [![Velocity](https://img.shields.io/badge/Velocity-3.3.0+-green.svg?style=for-the-badge&logo=minecraft)](https://papermc.io/velocity)
@@ -9,7 +9,7 @@
 **Продвинутый плагин защиты для Velocity Proxy серверов Minecraft**
 Обеспечивает комплексную защиту от **бот-атак**, **читерских клиентов**, **VPN/Proxy** и **подозрительного поведения игроков**.
 
-🆕 **Версия 2.3.0:** 2FA верификация + Проверка обновлений через GitHub + Ре-верификация при смене IP
+🆕 **Версия 2.4.0:** База данных SQLite + Web Dashboard + Async API + Rate Limiting + Метрики + Тесты
 
 ---
 
@@ -77,6 +77,51 @@
 - Режим усиленной защиты (Strict Mode)
 - CAPTCHA верификация
 - Белые списки IP и игроков
+- **База данных SQLite** для истории
+- **Web Dashboard** для мониторинга
+- **Async API** для производительности
+- **Rate Limiting** для API запросов
+- **Метрики** производительности
+
+---
+
+## 🆕 Что нового в v2.4.0
+
+### 🗄️ База данных SQLite
+- Хранение истории подключений
+- Статистика по игрокам
+- Персистентные блокировки
+- Async операции с БД
+
+### 🌐 Web Dashboard
+- Мониторинг в реальном времени
+- REST API для статистики
+- Автообновление данных
+- Доступ через браузер
+
+### ⚡ Производительность
+- Async API запросы (GeoIP, VPN)
+- Rate limiting для API
+- Контроль одновременных задач
+- Оптимизация памяти
+
+### 📊 Метрики
+- Счетчики событий
+- Гистограммы производительности
+- Мониторинг нагрузки
+- Prometheus-ready (опционально)
+
+### 🧪 Тестирование
+- Unit тесты (JUnit 5)
+- Тесты детекторов
+- Тесты утилит
+- CI/CD ready
+
+### 🛠️ Улучшения кода
+- Улучшенная обработка ошибок
+- Thread-safe операции
+- Корректное завершение работы
+- Документация кода
 
 ---
 
@@ -125,7 +170,7 @@ src/main/java/com/antibot/velocity/
 │   ├── BehaviorAnalyzer.java      # Анализ поведения игроков
 │   ├── ClientBrandDetector.java   # Детекция читерских клиентов
 │   ├── UsernameAnalyzer.java      # Анализ никнеймов
-│   └── VPNProxyDetector.java      # VPN / Proxy детекция
+│   └── VPNProxyDetector.java      # VPN / Proxy детекция (+ Async)
 ├── verification/
 │   └── CaptchaVerification.java   # CAPTCHA верификация
 ├── webhook/
@@ -134,11 +179,24 @@ src/main/java/com/antibot/velocity/
 │   └── DiscordBot.java            # Discord Bot интеграция
 ├── account/
 │   └── AccountLinkManager.java    # Привязка аккаунтов
+├── database/
+│   └── DatabaseManager.java       # SQLite база данных
+├── metrics/
+│   └── MetricsCollector.java      # Сборщик метрик
+├── util/
+│   ├── RateLimiter.java           # Rate limiting для API
+│   └── AsyncExecutor.java         # Async операции
+├── web/
+│   └── WebDashboard.java          # Web Dashboard
+├── github/
+│   └── GitHubReleaseChecker.java  # Проверка обновлений
 ├── AntiBotCommand.java           # Команды администратора
 ├── AntiBotPlugin.java            # Главный класс плагина
 ├── ConfigManager.java            # Управление конфигурацией
 ├── ConnectionData.java           # Данные подключений
-└── GeoIPChecker.java             # GeoIP проверка
+└── GeoIPChecker.java             # GeoIP проверка (+ Async)
+
+src/test/java/                     # Unit тесты
 ```
 
 ---
@@ -153,6 +211,67 @@ src/main/java/com/antibot/velocity/
    ```bash
    /antibot reload
    ```
+
+---
+
+## 🌐 Web Dashboard
+
+### Доступ к дашборду
+
+После запуска плагина Web Dashboard доступен по адресу:
+```
+http://localhost:8080
+```
+
+### Возможности
+
+- **Статистика в реальном времени**: Подключения, блокировки, детекции
+- **Статус системы**: Режим атаки, игроки онлайн, нагрузка
+- **Заблокированные IP**: Список текущих блокировок
+- **REST API**: Доступ к данным через HTTP
+
+### API Endpoints
+
+| Endpoint | Описание |
+|----------|----------|
+| `GET /` | Главная страница дашборда |
+| `GET /api/stats` | Статистика (JSON) |
+| `GET /api/status` | Статус системы (JSON) |
+| `GET /api/blocks` | Заблокированные IP (JSON) |
+
+### Настройка
+
+```yaml
+web-dashboard:
+  enabled: true
+  port: 8080
+  # Доступ только с localhost (безопасность)
+  bind-address: "127.0.0.1"
+```
+
+---
+
+## 🗄️ База данных
+
+### SQLite
+
+Плагин автоматически создаёт базу данных `antibot.db` в папке плагина.
+
+### Таблицы
+
+- **connections**: История подключений игроков
+- **detections**: Обнаружения (читы, VPN, боты)
+- **blocks**: Блокировки IP адресов
+
+### Очистка старых данных
+
+```yaml
+database:
+  # Автоматическая очистка записей старше N дней
+  cleanup-days: 30
+  # Интервал очистки (часы)
+  cleanup-interval-hours: 24
+```
 
 ---
 
@@ -309,13 +428,29 @@ mvn clean package
 # Сборка без тестов
 mvn clean package -DskipTests
 
+# Запуск тестов
+mvn test
+
 # Установка зависимостей
 mvn install
 ```
 
 Готовый файл плагина будет находиться в папке `target/`:
 ```
-target/AntiBot-Pro-2.3.0.jar
+target/AntiBot-Pro-2.4.0.jar
+```
+
+### Запуск тестов
+
+```bash
+# Все тесты
+mvn test
+
+# Конкретный тест
+mvn test -Dtest=RateLimiterTest
+
+# С подробным выводом
+mvn test -X
 ```
 
 ---
@@ -328,6 +463,36 @@ target/AntiBot-Pro-2.3.0.jar
 | **Java** | 17+ |
 | **Maven** | 3.6+ (для сборки) |
 | **Discord Bot** | Требуется для Discord интеграции |
+| **SQLite** | Встроен (автоматически) |
+
+---
+
+## 🔧 Производительность
+
+### Оптимизации
+
+- **Async API запросы**: Все внешние API вызовы асинхронные
+- **Rate Limiting**: Контроль частоты запросов к API
+- **Кэширование**: GeoIP и VPN результаты кэшируются
+- **Thread Pool**: Контролируемый пул потоков
+- **Database**: Async операции с SQLite
+
+### Метрики
+
+```yaml
+performance:
+  async-thread-pool-size: 4
+  max-concurrent-api-requests: 10
+  api-timeout-seconds: 5
+  metrics-enabled: true
+```
+
+### Мониторинг
+
+- Счетчики событий
+- Гистограммы времени выполнения
+- Gauge для текущих значений
+- Экспорт в Prometheus (опционально)
 
 ---
 
@@ -347,6 +512,6 @@ target/AntiBot-Pro-2.3.0.jar
 ---
 
 <p align="center">
-  <b>🔥 AntiBot Pro v2.3.0 — максимальная защита вашего Velocity-сервера</b><br>
-  <i>От атак, ботов, читеров и злоупотреблений + Discord интеграция</i>
+  <b>🔥 AntiBot Pro v2.4.0 — максимальная защита вашего Velocity-сервера</b><br>
+  <i>От атак, ботов, читеров и злоупотреблений + Discord интеграция + Web Dashboard</i>
 </p>

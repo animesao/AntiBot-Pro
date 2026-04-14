@@ -23,3 +23,11 @@ Thumbs.db
 # Old JARs
 AntiBot-Pro-*.jar
 original-*.jar
+
+# Database
+*.db
+*.db-journal
+
+# Test outputs
+test-output/
+*.class
